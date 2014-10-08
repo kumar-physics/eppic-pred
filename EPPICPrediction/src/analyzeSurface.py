@@ -60,7 +60,9 @@ class analyzeSurface(object):
                 print pdb
                 pass
                 
-                
+            except IOError:
+                print pdb
+                pass
 
         
       
