@@ -8,6 +8,8 @@ from getSurfaceResidues import getSurfaceResidues
 from random import sample
 from pylab import mean,var,sqrt
 from MySQLdb import Connect
+from scipy.stats.mstats import zscore
+
 class analyzeSurface(object):
     
     def calZsocre(self,core,surface,sampleSize):
@@ -17,8 +19,14 @@ class analyzeSurface(object):
             s.append(mean(sample(surface,len(core))))
         sig= sqrt(var(s))
         return (coreMean-mean(s))/sig
+    def calMeanZ(self,coreR,surfR,zscores):
+        z2=[]
+        for i in coreR:
+            z2.append(zscores[surfR.index(i)])
+        return [mean(z2),sqrt(var(z2))]
     
     def scanSurface(self,pdb,chain,interface,side,cifrepo,host,user,passwd,dbname,n,coreSize,sampleSize,outfolder):
+        print "Working on pdb %s"%(pdb)
         s=getSurfaceResidues()
         d=getDistanceMatrix()
         surfaceEntropies=s.getSurfaceEntropies(pdb, interface, side, host, user, passwd, dbname)
@@ -29,8 +37,12 @@ class analyzeSurface(object):
         distMatrix=surfDist[1]
         foname="%s/%s_zscore.dat"%(outfolder,pdb)
         fo=open(foname,'w')
-        fo.write("ref\tres\torder\tz\tpdb\n")
+        fo.write("ref\tres\torder\tavgz\tsigz\tpdb\tc\n")
+        #zs=zscore(surfaceEnt)
+        zs=surfaceEnt
+
         for r in range(n):
+            coreSize=r
             refRes=sample(surfRes,1)[0]
             print "Working around residue %d in pdb %s"%(refRes,pdb)
             sortedRes=sorted([[distMatrix[surfRes.index(refRes)][i],surfRes[i]] for i in range(len(surfRes))])
@@ -38,11 +50,12 @@ class analyzeSurface(object):
                 ref=res[1]
                 sortedRes2=sorted([[distMatrix[surfRes.index(ref)][i],surfRes[i]] for i in range(len(surfRes))])
                 coreRes=[k[1] for k in sortedRes2][1:coreSize+1]
-                coreEnt=[surfaceEnt[surfaceRes.index(m)] for m in coreRes]
-                surEnt=[surfaceEnt[surfaceRes.index(c)] for c in surfaceRes if c not in coreRes]
+                #coreEnt=[surfaceEnt[surfaceRes.index(m)] for m in coreRes]
+                #surEnt=[surfaceEnt[surfaceRes.index(c)] for c in surfaceRes if c not in coreRes]
                 #z=self.calZsocre(coreEnt, surfaceEnt, sampleSize)
-                z=self.calZsocre(coreEnt, surEnt, sampleSize)
-                fo.write("%d\t%d\t%d\t%f\t%s\n"%(refRes,ref,sortedRes.index(res),z,pdb))
+                #z=self.calZsocre(coreEnt, surEnt, sampleSize)
+                z=self.calMeanZ(coreRes, surfaceRes, zs)
+                fo.write("%d\t%d\t%d\t%f\t%f\t%s\tc%d\n"%(refRes,ref,sortedRes.index(res),z[0],z[1],pdb,r))
         fo.close()
                 
     def runDataset(self,dataset,interface, side, cifrepo, host, user, passwd, dbname, n, coreSize, sampleSize, outfolder):
@@ -63,11 +76,12 @@ class analyzeSurface(object):
             except IOError:
                 print pdb
                 pass
-
+#1m4n
         
       
             
 if __name__=="__main__":
     from sys import argv
+    from string import atoi
     p=analyzeSurface()
-    p.runDataset(argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8], argv[9], argv[10], argv[11], argv[12])
+    p.runDataset(argv[1], atoi(argv[2]), atoi(argv[3]), argv[4], argv[5], argv[6], argv[7], argv[8], atoi(argv[9]), atoi(argv[10]), atoi(argv[11]), argv[12])
