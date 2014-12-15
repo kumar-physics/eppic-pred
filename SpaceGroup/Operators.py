@@ -615,7 +615,7 @@ class Operator:
             2018 : ['X,Y,Z', '-X,Y,-Z', '1/2+X,-Y,1/2-Z', '1/2-X,-Y,1/2+Z'] ,\
             3018 : ['X,Y,Z', 'X,-Y,-Z', '-X,1/2+Y,1/2-Z', '-X,1/2-Y,1/2+Z'] ,\
             1020 : ['X,Y,Z', '1/2-X,-Y,1/2+Z', '1/2+X,1/2-Y,-Z', '-X,1/2+Y,1/2-Z', '1/2+X,1/2+Y,Z', '-X,1/2-Y,1/2+Z', 'X,-Y,-Z', '1/2-X,Y,1/2-Z'] ,\
-            1021 : ['X,Y,Z', '1/2-X,1/2-Y,Z', 'X+1/2,-Y,-Z', '-X,Y+1/2,-Z', '1/2+', '-X,-Y,Z', 'X,1/2-Y,-Z', '1/2-X,Y,-Z'] ,\
+            1021 : ['X,Y,Z', '1/2-X,1/2-Y,Z', 'X+1/2,-Y,-Z', '-X,Y+1/2,-Z', '1/2+X,1/2+Y,Z', '-X,-Y,Z', 'X,1/2-Y,-Z', '1/2-X,Y,-Z'] ,\
             1022 : ['X,Y,Z', '1/2-X,1/2-Y,Z', 'X+1/2,-Y,-Z', '-X,Y+1/2,-Z', 'X,Y+1/2,Z+1/2', '1/2-X,-Y,Z+1/2', 'X+1/2,-Y+1/2,-Z+1/2', '-X,Y,-Z+1/2', 'X+1/2,Y,Z+1/2', '-X,1/2-Y,Z+1/2', 'X,-Y,-Z+1/2', '-X+1/2,Y+1/2,-Z+1/2', 'X+1/2,Y+1/2,Z', '-X,-Y,Z', 'X,-Y+1/2,-Z', '-X+1/2,Y,-Z'] ,\
             1023 : ['X,Y,Z', '1/2-X,1/2-Y,Z', 'X+1/2,-Y,-Z', '-X,Y+1/2,-Z', '1/2+X,1/2+Y,1/2+Z', '-X,-Y,1/2+Z', '1/2-X,Y,1/2-Z', 'X,1/2-Y,1/2-Z'] ,\
             1059 : ['X,Y,Z', '1/2-X,1/2-Y,Z', '-X,1/2+Y,-Z', '1/2+X,-Y,-Z', '-X,-Y,-Z', 'X+1/2,Y+1/2,-Z', 'X,1/2-Y,Z', '1/2-X,Y,Z'] ,\
@@ -959,34 +959,17 @@ class Operator:
         return ax
             
                 
-    def parseCCP4libFile(self,fname):
-        f=open(fname,'r').read().split("\n")[:-1]
-        oo=[]
-        x=['0','xxx']
-        for l in f:
-            w=l.split(" ")
-            if w[0]!="":
-                print atoi(x[0]),":",oo,",\\"
-                d=findall(r'(\d+)\s[\S\s]+\'([\S\s]+)\'\s\'([\S\s]+)\'\s\'([\S\s]+)\'|(\d+)\s[\S\s]+\'([\S\s]+)\'\s\'([\S\s]+)\'|(\d+)\s[\S\s]+\'([\S\s]+)\'',l)
-                x=[filter(None,list(i)) for i in d][0]
-                oo=[]
-            else:
-                oo.append(w[1])
-        print atoi(x[0]),":",oo,",\\"
-        
-    def checkdict(self):
-        print len(self.sgId2op)
-        print len(self.sgId2sg)
-        n=0
-        for k in self.sgId2sg.keys():
-            n+=(len(self.sgId2op[k])+1)
-        print n
+    
             
                 
 
 if __name__=="__main__":
     p=Operator()
-    p.checkdict()
+    for k in p.spaceGroupId2Name.keys():
+        print p.spaceGroupId2Name[k]
+        for o in p.spaceGroupId2Operators[k]:
+            print p.spaceGroupId2Name[k],o
+            print p.operator2matrix(o)
 #     f=open('/home/kumaran/symop.lib','r').read().split("\n")
 #     for l in f:
 #         n=len(l.split(" "))
