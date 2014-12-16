@@ -912,18 +912,22 @@ class Operator:
         return self.opmatrix
     
     
-    def omega(self,opmatrix):
+    def screwComponent(self,opmatrix):
         k=self.axisType(opmatrix)
         op=opmatrix.transpose()[:3].transpose()[:3]
         t=opmatrix.transpose()[3:].transpose()[:3]
         nullvec=array([0.0,0.0,0.0])
         Y=array([nullvec,nullvec,nullvec])
-        for i in range(k):
-            Y+=linalg.matrix_power(op, i)
-        Y1=Y/k
-        t1=t/k
-        a=matrix.dot(t1.transpose(),Y1)
-        return t1
+        if k>0:
+            for i in range(k):
+                Y+=linalg.matrix_power(op, i)
+        elif k<0:
+            for i in range(0,k,-1):
+                Y+=linalg.matrix_power(op, i)
+        else:
+            print "There is a problem"
+        a=(matrix.dot(Y,t))/k
+        return a
         
     def axisType(self,opmatrix):
         d=linalg.det(opmatrix)
@@ -966,10 +970,27 @@ class Operator:
 if __name__=="__main__":
     p=Operator()
     for k in p.spaceGroupId2Name.keys():
-        print p.spaceGroupId2Name[k]
-        for o in p.spaceGroupId2Operators[k]:
-            print p.spaceGroupId2Name[k],o
-            print p.operator2matrix(o)
+        sg=[op for op in p.spaceGroupId2Operators[k] if p.axisType(p.operator2matrix(op))==2]
+        if len(sg)==0:
+            print k,p.spaceGroupId2Name[k],"NO",sg
+        else:
+            print k,p.spaceGroupId2Name[k],"YES",sg
+#     f=open('/home/kumaran/spacegroup/output.dat','r').read().split("\n")[:-1]
+#     f2=open('/home/kumaran/spacegroup/singleChain.dat','r').read().split("\n")[:-1]
+#     for l in f:
+#         
+#         w=l.split("\t")
+#         if w[0] in f2:
+#             if w[1]!="NULL":
+#                 #print p.spacegroupName2Id[w[1]],w[1]
+#                 ss=[op for op in p.spaceGroupId2Operators[p.spacegroupName2Id[w[1]]] if p.axisType(p.operator2matrix(op))==2]
+#                 if len(ss)>0:
+#                     w[-1]="yes"
+#                 else:
+#                     w[-1]="no"
+#             else:
+#                 w[-1]="no"
+#             print "\t".join(w)
 #     f=open('/home/kumaran/symop.lib','r').read().split("\n")
 #     for l in f:
 #         n=len(l.split(" "))
