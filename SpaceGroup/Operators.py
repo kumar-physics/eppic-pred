@@ -11,7 +11,16 @@ from numpy import trace
 from numpy import linalg
 from numpy import matrix
 from string import atoi
+from MySQLdb import Connect
 class Operator:
+    host=''
+    user=''
+    passwd=''
+    dbname='eppic_2014_10'
+    def connectMySql(self):
+        dbConnection=Connect(host=self.host,user=self.user,passwd=self.passwd,db=self.dbname)
+        self.cur=dbConnection.cursor()
+        
     vector={'X':[1.0,0.0,0.0,0.0],'+X':[1.0,0.0,0.0,0.0],'-X':[-1.0,0.0,0.0,0.0],\
             'Y':[0.0,1.0,0.0,0.0],'+Y':[0.0,1.0,0.0,0.0],'-Y':[0.0,-1.0,0.0,0.0],\
             'Z':[0.0,0.0,1.0,0.0],'+Z':[0.0,0.0,1.0,0.0],'-Z':[0.0,0.0,-1.0,0.0]}
@@ -926,7 +935,7 @@ class Operator:
                 Y+=linalg.matrix_power(op, i)
         else:
             print "There is a problem"
-        a=(matrix.dot(Y,t))/k
+        a=linalg.norm((matrix.dot(Y,t).transpose())/k)
         return a
         
     def axisType(self,opmatrix):
@@ -961,7 +970,15 @@ class Operator:
         else:
             ax=100
         return ax
-            
+    def getData(self,pdbCode,interfaceId):
+        self.connectMySql()
+        self.cur.execute("select operator,operatorType from Interface where pdbCode='%s' and interfaceId=%d;"%(pdbCode,interfaceId))
+        try:
+            optype=list(self.cur.fetchall())[0]
+        except IndexError:
+            optype=-1        
+        return optype
+              
                 
     
             
@@ -969,12 +986,14 @@ class Operator:
 
 if __name__=="__main__":
     p=Operator()
-    for k in p.spaceGroupId2Name.keys():
-        sg=[op for op in p.spaceGroupId2Operators[k] if p.axisType(p.operator2matrix(op))==2]
-        if len(sg)==0:
-            print k,p.spaceGroupId2Name[k],"NO",sg
-        else:
-            print k,p.spaceGroupId2Name[k],"YES",sg
+    dat=p.getData('4ttl', 3)
+    op=dat[0]
+    ty=dat[1]
+    #print op,ty
+    m=p.operator2matrix(op)
+    ax=p.axisType(m)
+    sr=p.screwComponent(m)
+    print op,ty,ax,sr
 #     f=open('/home/kumaran/spacegroup/output.dat','r').read().split("\n")[:-1]
 #     f2=open('/home/kumaran/spacegroup/singleChain.dat','r').read().split("\n")[:-1]
 #     for l in f:
